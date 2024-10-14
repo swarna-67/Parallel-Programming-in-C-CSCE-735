@@ -1,15 +1,15 @@
 // -----------------------------------------------------------------------------
 // Hypercube Quicksort to sort a list of integers distributed across processors
 // MPI-based implementation
-// 
+//
 #include <cmath>
 #include <cstdlib>
 #include <cstdio>
 #include <new>
 #include <mpi.h>
-  
-#define MAX_LIST_SIZE_PER_PROC	1310720000
-  
+
+#define MAX_LIST_SIZE_PER_PROC	268435456
+
 #ifndef VERBOSE
 #define VERBOSE 0			// Use VERBOSE to control output 
 #endif
@@ -187,7 +187,7 @@ int * HyperCube_Class::initialize_list(int type) {
 // The process also checks that its list has values larger than or equal to
 // the largest value on the process before it (i.e., on process (my_id-1).
 // Prints result of error check if VERBOSE > 1 
-// 
+//
 void HyperCube_Class::check_list() {
     int tag = 0;
     int max_nbr = -1;		// Assumes list contains non-negative integers; 6-21-2017
@@ -297,8 +297,8 @@ void HyperCube_Class::HyperCube_QuickSort() {
 	// compute the sum of local_median values on processes of this hypercube
 
 	// ***** Add MPI call here *****
-    MPI_Allreduce(&local_median, &pivot, 1, MPI_INT, MPI_SUM, sub_hypercube_comm);
-    //CALLED ALLREDUCE FOR PIVOT SUM
+
+
 	pivot = pivot/sub_hypercube_size;
 
 	// Search for smallest element in list which is larger than pivot
@@ -312,64 +312,62 @@ void HyperCube_Class::HyperCube_QuickSort() {
 
 	// Communicate with neighbor along dimension k
 	nbr_k = neighbor_along_dim_k(k); 
-    
+
 	if (nbr_k > my_id) {
 	    // MPI-2: Send number of elements greater than pivot
-	    //since sub_hypercube_com is used as the communicator we need to ensure nbr_k value is in the subgroup range
-        nbr_k %= sub_hypercube_size;
-	    MPI_Send(&list_size_gt, 1, MPI_INT, nbr_k, 0, sub_hypercube_comm);
-	    
+
+	    // ***** Add MPI call here *****
 
 
 	    // MPI-3: Receive number of elements less than or equal to pivot
 
-	    MPI_Recv(&nbr_list_size, 1, MPI_INT, nbr_k, 0, sub_hypercube_comm, &status); //CONSIDERED STATUS FOR RECEIVE
- 
+	    // ***** Add MPI call here *****
+
 
 	    // Allocate storage for neighbor's list
 	    nbr_list = new int[nbr_list_size];
- 
+
 	    // MPI-4: Send list[idx ... list_size-1] to neighbor
 
-	    MPI_Send(&list[idx], list_size_gt, MPI_INT, nbr_k, 0, sub_hypercube_comm);
+	    // ***** Add MPI call here *****
+
 
 	    // MPI-5: Receive neighbor's list of elements that are less than or equal to pivot
 
-	    MPI_Recv(nbr_list, nbr_list_size, MPI_INT, nbr_k, 0, sub_hypercube_comm, &status); //IGNORED STATUS HERE
+	    // ***** Add MPI call here *****
 
- 
+
 	    // Merge local list of elements less than or equal to pivot with neighbor's list
 	    new_list = merged_list(list, idx, nbr_list, nbr_list_size); 
- 
+
 	    // Replace local list with new_list, update size
 	    delete [] list; 
 	    delete [] nbr_list; 
 	    list = new_list; 
 	    list_size = list_size_leq+nbr_list_size;
- 
+
 	} else {
 	    // MPI-6: Receive number of elements greater than pivot
-        nbr_k %= sub_hypercube_size;//this is because i used sub_hypercube_comm as communictor
-        //and if nbr_k out of the sub group it throws out of range error.
-	    MPI_Recv(&nbr_list_size,1, MPI_INT, nbr_k, 0, sub_hypercube_comm, &status );
+
+	    // ***** Add MPI call here *****
 
 
 	    // MPI-7: Send number of elements less than or equal to pivot
 
-	    MPI_Send(&list_size_leq, 1, MPI_INT, nbr_k, 0, sub_hypercube_comm);
- 
+	    // ***** Add MPI call here *****
+
 
 	    // Allocate storage for neighbor's list
 	    nbr_list = new int[nbr_list_size]; 
 
 	    // MPI-8: Receive neighbor's list of elements that are greater than the pivot
 
-	    MPI_Recv(nbr_list, nbr_list_size, MPI_INT, nbr_k, 0, sub_hypercube_comm, &status);
+	    // ***** Add MPI call here *****
 
 
 	    // MPI-9: Send list[0 ... idx-1] to neighbor
 
-	    MPI_Send(list, list_size_leq, MPI_INT, nbr_k, 0, sub_hypercube_comm);
+	    // ***** Add MPI call here *****
 
 
 	    // Merge local list of elements greater than pivot with neighbor's list
